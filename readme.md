@@ -41,4 +41,4 @@ Ce projet permet à l’utilisateur d’ajouter, barrer, supprimer des tâches, 
 1. Clone le projet :
 
 ```bash
-git clone https://github.com/ton-utilisateur/ma-todo-list.git
+git clone https://github.com/Hermesmavinga/liste-de-tache.git
