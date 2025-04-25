@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ma Todo List</title>
   <link rel="stylesheet" href="fontawesone/css/all.css">
+  <title>Ma Todo List</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class'
-    }
+      darkMode: 'class',
+    };
   </script>
 
   <!-- FontAwesome -->
@@ -24,11 +24,11 @@
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 dark:text-white min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
-  <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 transition-colors duration-300">
+  <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
     
     <!-- Titre + Dark Mode Toggle -->
     <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">📝 Ma Liste de Tâches</h1>
+      <h1 class="text-2xl font-bold">📝 Ma Liste de Tâche</h1>
       <button id="themeToggle" class="text-xl p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">
         <i id="themeIcon" class="fas fa-moon"></i>
       </button>
@@ -36,27 +36,25 @@
 
     <!-- Input + bouton ajouter -->
     <div class="flex gap-2 mb-4 flex-col sm:flex-row">
-      <input
-        id="myInput"
-        type="text"
-        placeholder="Ajouter une tâche..."
-        class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-      />
-      <button
-        id="myBtn"
-        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-      >
+      <input id="myInput" type="text" placeholder="Ajouter une tâche..."
+        class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+      <button id="myBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
         Ajouter
       </button>
+    </div>
+
+    <!-- Filtres -->
+    <div class="flex justify-center gap-2 mb-4">
+      <button class="filter-btn px-3 py-1 text-sm rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600" data-filter="all">Toutes</button>
+      <button class="filter-btn px-3 py-1 text-sm rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600" data-filter="done">Terminées</button>
+      <button class="filter-btn px-3 py-1 text-sm rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600" data-filter="undone">Non terminées</button>
     </div>
 
     <!-- Compteur -->
     <div id="counter" class="text-sm text-gray-600 dark:text-gray-300 mb-2">0 tâche(s)</div>
 
     <!-- Liste des tâches -->
-    <div id="taskContainer" class="space-y-2">
-      <!-- Tâches ajoutées dynamiquement ici -->
-    </div>
+    <div id="taskContainer" class="space-y-2"></div>
   </div>
 
   <!-- Script -->
@@ -68,88 +66,114 @@
     const themeToggle = document.getElementById("themeToggle");
     const themeIcon = document.getElementById("themeIcon");
     const body = document.body;
+    const filterButtons = document.querySelectorAll(".filter-btn");
 
-    // Fonction pour mettre à jour le compteur
+    let currentFilter = "all";
+
     function updateCounter() {
       const tasks = document.querySelectorAll("#taskContainer > div");
       counter.textContent = `${tasks.length} tâche${tasks.length > 1 ? "s" : ""}`;
     }
 
-    // Sauvegarder les tâches dans localStorage
-    function saveTasksToLocalStorage() {
-      const tasks = [];
-      document.querySelectorAll("#taskContainer > div").forEach(task => {
-        const text = task.querySelector("span").textContent;
-        const isCompleted = task.querySelector("span").classList.contains("line-through");
-        tasks.push({ text, isCompleted });
-      });
-      localStorage.setItem("tasks", JSON.stringify(tasks));
+    function saveTasks() {
+      const allTasks = Array.from(document.querySelectorAll("#taskContainer span")).map(el => ({
+        text: el.textContent,
+        completed: el.classList.contains("line-through")
+      }));
+      localStorage.setItem("tasks", JSON.stringify(allTasks));
     }
 
-    // Charger les tâches depuis localStorage
-    function loadTasksFromLocalStorage() {
-      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-      tasks.forEach(task => {
-        createTaskElement(task.text, task.isCompleted);
-      });
+    function loadTasks() {
+      const saved = JSON.parse(localStorage.getItem("tasks")) || [];
+      saved.forEach(task => createTaskElement(task.text, task.completed));
     }
 
-    // Créer une tâche visuellement + listeners
-    function createTaskElement(taskTextContent, isCompleted = false) {
+    function createTaskElement(text, completed = false) {
       const taskItem = document.createElement("div");
-      taskItem.className = "flex items-center justify-between bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition";
+      taskItem.className = "task-item flex items-center justify-between bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition transform opacity-0 translate-y-2";
 
       const taskText = document.createElement("span");
-      taskText.textContent = taskTextContent;
+      taskText.textContent = text;
       taskText.className = "cursor-pointer text-gray-800 dark:text-white";
-      if (isCompleted) {
+      if (completed) {
         taskText.classList.add("line-through", "text-gray-400");
       }
 
-      // Barrer ou débarrer la tâche
       taskText.addEventListener("click", () => {
         taskText.classList.toggle("line-through");
         taskText.classList.toggle("text-gray-400");
-        saveTasksToLocalStorage();
+        saveTasks();
+        applyFilter(currentFilter);
       });
 
-      // Supprimer la tâche
       const deleteIcon = document.createElement("i");
       deleteIcon.className = "fas fa-trash text-red-500 cursor-pointer hover:text-red-700 transition";
       deleteIcon.addEventListener("click", () => {
-        taskContainer.removeChild(taskItem);
-        updateCounter();
-        saveTasksToLocalStorage();
+        const confirmDelete = confirm("Supprimer cette tâche ?");
+        if (confirmDelete) {
+          taskContainer.removeChild(taskItem);
+          updateCounter();
+          saveTasks();
+        }
       });
 
       taskItem.appendChild(taskText);
       taskItem.appendChild(deleteIcon);
       taskContainer.appendChild(taskItem);
 
+      setTimeout(() => {
+        taskItem.classList.remove("opacity-0", "translate-y-2");
+      }, 10);
+
       updateCounter();
+      saveTasks();
     }
 
-    // Bouton Ajouter
     myBtn.addEventListener("click", () => {
       const value = myInput.value.trim();
       if (value !== "") {
         createTaskElement(value);
         myInput.value = "";
-        saveTasksToLocalStorage();
+        applyFilter(currentFilter);
       } else {
         alert("Veuillez entrer une tâche !");
       }
     });
 
-    // Dark Mode Toggle
     themeToggle.addEventListener("click", () => {
       body.classList.toggle("dark");
       themeIcon.classList.toggle("fa-moon");
       themeIcon.classList.toggle("fa-sun");
     });
 
-    // Charger les tâches au démarrage
-    loadTasksFromLocalStorage();
+    filterButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentFilter = btn.dataset.filter;
+        applyFilter(currentFilter);
+      });
+    });
+
+    function applyFilter(filter) {
+      const allTasks = document.querySelectorAll(".task-item");
+
+      allTasks.forEach(task => {
+        const isDone = task.querySelector("span").classList.contains("line-through");
+
+        task.style.display =
+          filter === "all" ||
+          (filter === "done" && isDone) ||
+          (filter === "undone" && !isDone)
+            ? "flex"
+            : "none";
+      });
+
+      updateCounter();
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadTasks();
+      applyFilter(currentFilter);
+    });
   </script>
 </body>
 </html>
