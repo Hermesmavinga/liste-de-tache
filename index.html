@@ -18,7 +18,6 @@
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    integrity="sha512-KdD3g2BQ9FmjzGr+ZGH25A2Gw6lZpxpJkE2wKepT1E+Djrz4e5Qy98ZXeipXDg4I5L3tMGrz6L2V7L48TgS4Rg=="
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
@@ -29,7 +28,7 @@
     
     <!-- Titre + Dark Mode Toggle -->
     <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">📝 Ma Todo List</h1>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">📝 Ma Liste de Tâches</h1>
       <button id="themeToggle" class="text-xl p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">
         <i id="themeIcon" class="fas fa-moon"></i>
       </button>
@@ -60,7 +59,7 @@
     </div>
   </div>
 
-  <!-- Script JS -->
+  <!-- Script -->
   <script>
     const myBtn = document.getElementById("myBtn");
     const myInput = document.getElementById("myInput");
@@ -76,51 +75,81 @@
       counter.textContent = `${tasks.length} tâche${tasks.length > 1 ? "s" : ""}`;
     }
 
-    // Ajout de tâche
+    // Sauvegarder les tâches dans localStorage
+    function saveTasksToLocalStorage() {
+      const tasks = [];
+      document.querySelectorAll("#taskContainer > div").forEach(task => {
+        const text = task.querySelector("span").textContent;
+        const isCompleted = task.querySelector("span").classList.contains("line-through");
+        tasks.push({ text, isCompleted });
+      });
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // Charger les tâches depuis localStorage
+    function loadTasksFromLocalStorage() {
+      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+      tasks.forEach(task => {
+        createTaskElement(task.text, task.isCompleted);
+      });
+    }
+
+    // Créer une tâche visuellement + listeners
+    function createTaskElement(taskTextContent, isCompleted = false) {
+      const taskItem = document.createElement("div");
+      taskItem.className = "flex items-center justify-between bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition";
+
+      const taskText = document.createElement("span");
+      taskText.textContent = taskTextContent;
+      taskText.className = "cursor-pointer text-gray-800 dark:text-white";
+      if (isCompleted) {
+        taskText.classList.add("line-through", "text-gray-400");
+      }
+
+      // Barrer ou débarrer la tâche
+      taskText.addEventListener("click", () => {
+        taskText.classList.toggle("line-through");
+        taskText.classList.toggle("text-gray-400");
+        saveTasksToLocalStorage();
+      });
+
+      // Supprimer la tâche
+      const deleteIcon = document.createElement("i");
+      deleteIcon.className = "fas fa-trash text-red-500 cursor-pointer hover:text-red-700 transition";
+      deleteIcon.addEventListener("click", () => {
+        taskContainer.removeChild(taskItem);
+        updateCounter();
+        saveTasksToLocalStorage();
+      });
+
+      taskItem.appendChild(taskText);
+      taskItem.appendChild(deleteIcon);
+      taskContainer.appendChild(taskItem);
+
+      updateCounter();
+    }
+
+    // Bouton Ajouter
     myBtn.addEventListener("click", () => {
-      if (myInput.value.trim() !== "") {
-        const taskItem = document.createElement("div");
-        taskItem.className = "flex items-center justify-between bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition";
-
-        const taskText = document.createElement("span");
-        taskText.textContent = myInput.value;
-        taskText.className = "cursor-pointer text-gray-800 dark:text-white";
-
-        // Clic pour barrer/débarrer
-        taskText.addEventListener("click", () => {
-          taskText.classList.toggle("line-through");
-          taskText.classList.toggle("text-gray-400");
-        });
-
-        // Icône de suppression
-        const deleteIcon = document.createElement("i");
-        deleteIcon.className = "fas fa-trash text-red-500 cursor-pointer hover:text-red-700 transition";
-        deleteIcon.addEventListener("click", () => {
-          taskContainer.removeChild(taskItem);
-          updateCounter(); // Met à jour le compteur
-        });
-
-        taskItem.appendChild(taskText);
-        taskItem.appendChild(deleteIcon);
-        taskContainer.appendChild(taskItem);
-
+      const value = myInput.value.trim();
+      if (value !== "") {
+        createTaskElement(value);
         myInput.value = "";
-        updateCounter(); // Met à jour après ajout
+        saveTasksToLocalStorage();
       } else {
         alert("Veuillez entrer une tâche !");
       }
     });
 
-    // Dark Mode toggle
+    // Dark Mode Toggle
     themeToggle.addEventListener("click", () => {
       body.classList.toggle("dark");
-
-      if (body.classList.contains("dark")) {
-        themeIcon.classList.replace("fa-moon", "fa-sun");
-      } else {
-        themeIcon.classList.replace("fa-sun", "fa-moon");
-      }
+      themeIcon.classList.toggle("fa-moon");
+      themeIcon.classList.toggle("fa-sun");
     });
+
+    // Charger les tâches au démarrage
+    loadTasksFromLocalStorage();
   </script>
 </body>
 </html>
