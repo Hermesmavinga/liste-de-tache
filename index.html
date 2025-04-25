@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ma Todo List</title>
+  <link rel="stylesheet" href="fontawesone/css/all.css">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+
+  <!-- FontAwesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-KdD3g2BQ9FmjzGr+ZGH25A2Gw6lZpxpJkE2wKepT1E+Djrz4e5Qy98ZXeipXDg4I5L3tMGrz6L2V7L48TgS4Rg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-white min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
+  <div class="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 transition-colors duration-300">
+    
+    <!-- Titre + Dark Mode Toggle -->
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">📝 Ma Todo List</h1>
+      <button id="themeToggle" class="text-xl p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+        <i id="themeIcon" class="fas fa-moon"></i>
+      </button>
+    </div>
+
+    <!-- Input + bouton ajouter -->
+    <div class="flex gap-2 mb-4">
+      <input
+        id="myInput"
+        type="text"
+        placeholder="Ajouter une tâche..."
+        class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+      />
+      <button
+        id="myBtn"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+      >
+        Ajouter
+      </button>
+    </div>
+
+    <!-- Compteur -->
+    <div id="counter" class="text-sm text-gray-600 dark:text-gray-300 mb-2">0 tâche(s)</div>
+
+    <!-- Liste des tâches -->
+    <div id="taskContainer" class="space-y-2">
+      <!-- Tâches ajoutées dynamiquement ici -->
+    </div>
+  </div>
+
+  <!-- Script JS -->
+  <script>
+    const myBtn = document.getElementById("myBtn");
+    const myInput = document.getElementById("myInput");
+    const taskContainer = document.getElementById("taskContainer");
+    const counter = document.getElementById("counter");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+    const body = document.body;
+
+    // Fonction pour mettre à jour le compteur
+    function updateCounter() {
+      const tasks = document.querySelectorAll("#taskContainer > div");
+      counter.textContent = `${tasks.length} tâche${tasks.length > 1 ? "s" : ""}`;
+    }
+
+    // Ajout de tâche
+    myBtn.addEventListener("click", () => {
+      if (myInput.value.trim() !== "") {
+        const taskItem = document.createElement("div");
+        taskItem.className = "flex items-center justify-between bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition";
+
+        const taskText = document.createElement("span");
+        taskText.textContent = myInput.value;
+        taskText.className = "cursor-pointer text-gray-800 dark:text-white";
+
+        // Clic pour barrer/débarrer
+        taskText.addEventListener("click", () => {
+          taskText.classList.toggle("line-through");
+          taskText.classList.toggle("text-gray-400");
+        });
+
+        // Icône de suppression
+        const deleteIcon = document.createElement("i");
+        deleteIcon.className = "fas fa-trash text-red-500 cursor-pointer hover:text-red-700 transition";
+        deleteIcon.addEventListener("click", () => {
+          taskContainer.removeChild(taskItem);
+          updateCounter(); // Met à jour le compteur
+        });
+
+        taskItem.appendChild(taskText);
+        taskItem.appendChild(deleteIcon);
+        taskContainer.appendChild(taskItem);
+
+        myInput.value = "";
+        updateCounter(); // Met à jour après ajout
+      } else {
+        alert("Veuillez entrer une tâche !");
+      }
+    });
+
+    // Dark Mode toggle
+    themeToggle.addEventListener("click", () => {
+      body.classList.toggle("dark");
+
+      if (body.classList.contains("dark")) {
+        themeIcon.classList.replace("fa-moon", "fa-sun");
+      } else {
+        themeIcon.classList.replace("fa-sun", "fa-moon");
+      }
+    });
+  </script>
+</body>
+</html>
